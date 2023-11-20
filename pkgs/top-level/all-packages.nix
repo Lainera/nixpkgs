@@ -3271,6 +3271,8 @@ with pkgs;
     openssl = quictls;
   };
 
+  angie-console-light = callPackage ../servers/http/angie/console-light.nix { };
+
   angle-grinder = callPackage ../tools/text/angle-grinder { };
 
   ansifilter = callPackage ../tools/text/ansifilter { };

@@ -11977,13 +11977,14 @@ with pkgs;
     polkitSupport = true;
   };
 
-  pcsctools = callPackage ../tools/security/pcsctools { };
-
   pcsc-cyberjack = callPackage ../tools/security/pcsc-cyberjack { };
 
   pcsc-safenet = callPackage ../tools/security/pcsc-safenet { };
 
   pcsc-scm-scl011 = callPackage ../tools/security/pcsc-scm-scl011 { };
+
+  pcsc-tools = callPackage ../tools/security/pcsc-tools { };
+
   ifdnfc = callPackage ../tools/security/ifdnfc { };
 
   pdd = python3Packages.callPackage ../tools/misc/pdd { };

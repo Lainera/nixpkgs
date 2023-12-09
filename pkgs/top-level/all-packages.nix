@@ -11983,7 +11983,9 @@ with pkgs;
 
   pcsc-scm-scl011 = callPackage ../tools/security/pcsc-scm-scl011 { };
 
-  pcsc-tools = callPackage ../tools/security/pcsc-tools { };
+  pcsc-tools = callPackage ../tools/security/pcsc-tools {
+    inherit (pkgs.darwin.apple_sdk.frameworks) PCSC;
+  };
 
   ifdnfc = callPackage ../tools/security/ifdnfc { };
 

@@ -96,18 +96,6 @@ in {
       rpiVersion = 4;
     };
 
-    linux_4_14 = callPackage ../os-specific/linux/kernel/mainline.nix {
-      branch = "4.14";
-      kernelPatches =
-        [ kernelPatches.bridge_stp_helper
-          kernelPatches.request_key_helper
-          # See pkgs/os-specific/linux/kernel/cpu-cgroup-v2-patches/README.md
-          # when adding a new linux version
-          kernelPatches.cpu-cgroup-v2."4.11"
-          kernelPatches.modinst_arg_list_too_long
-        ];
-    };
-
     linux_4_19 = callPackage ../os-specific/linux/kernel/mainline.nix {
       branch = "4.19";
       kernelPatches =
@@ -170,7 +158,6 @@ in {
       kernelPatches = [
         kernelPatches.bridge_stp_helper
         kernelPatches.request_key_helper
-        kernelPatches.dell_xps_regression
       ];
     };
 
@@ -179,16 +166,6 @@ in {
         kernelPatches.bridge_stp_helper
         kernelPatches.request_key_helper
         kernelPatches.export-rt-sched-migrate
-        kernelPatches.dell_xps_regression
-      ];
-    };
-
-    linux_6_4 = callPackage ../os-specific/linux/kernel/mainline.nix {
-      branch = "6.4";
-      kernelPatches = [
-        kernelPatches.bridge_stp_helper
-        kernelPatches.request_key_helper
-        kernelPatches.dell_xps_regression
       ];
     };
 
@@ -197,7 +174,14 @@ in {
       kernelPatches = [
         kernelPatches.bridge_stp_helper
         kernelPatches.request_key_helper
-        kernelPatches.dell_xps_regression
+      ];
+    };
+
+    linux_6_6 = callPackage ../os-specific/linux/kernel/mainline.nix {
+      branch = "6.6";
+      kernelPatches = [
+        kernelPatches.bridge_stp_helper
+        kernelPatches.request_key_helper
       ];
     };
 
@@ -216,19 +200,12 @@ in {
        then latest
        else testing;
 
+    # FIXME: Remove after 23.11 is released
     linux_testing_bcachefs = callPackage ../os-specific/linux/kernel/linux-testing-bcachefs.nix {
       # Pinned on the last version which Kent's commits can be cleany rebased up.
-      kernel = linux_6_4;
-      kernelPatches = linux_6_4.kernelPatches;
+      kernel = linux_6_5;
+      kernelPatches = linux_6_5.kernelPatches;
    };
-
-    linux_hardkernel_4_14 = callPackage ../os-specific/linux/kernel/linux-hardkernel-4.14.nix {
-      kernelPatches = [
-        kernelPatches.bridge_stp_helper
-        kernelPatches.request_key_helper
-        kernelPatches.modinst_arg_list_too_long
-      ];
-    };
 
     # Using zenKernels like this due lqx&zen came from one source, but may have different base kernel version
     # https://github.com/NixOS/nixpkgs/pull/161773#discussion_r820134708
@@ -266,10 +243,6 @@ in {
 
     linux_hardened = hardenedKernelFor packageAliases.linux_default.kernel { };
 
-    linux_4_14_hardened = hardenedKernelFor kernels.linux_4_14 {
-      stdenv = gcc10Stdenv;
-      buildPackages = buildPackages // { stdenv = buildPackages.gcc10Stdenv; };
-    };
     linux_4_19_hardened = hardenedKernelFor kernels.linux_4_19 {
       stdenv = gcc10Stdenv;
       buildPackages = buildPackages // { stdenv = buildPackages.gcc10Stdenv; };
@@ -281,16 +254,18 @@ in {
     linux_5_10_hardened = hardenedKernelFor kernels.linux_5_10 { };
     linux_5_15_hardened = hardenedKernelFor kernels.linux_5_15 { };
     linux_6_1_hardened = hardenedKernelFor kernels.linux_6_1 { };
-    linux_6_4_hardened = hardenedKernelFor kernels.linux_6_4 { };
     linux_6_5_hardened = hardenedKernelFor kernels.linux_6_5 { };
+    linux_6_6_hardened = hardenedKernelFor kernels.linux_6_6 { };
 
   } // lib.optionalAttrs config.allowAliases {
     linux_4_9 = throw "linux 4.9 was removed because it will reach its end of life within 22.11";
+    linux_4_14 = throw "linux 4.14 was removed because it will reach its end of life within 23.11";
     linux_5_18 = throw "linux 5.18 was removed because it has reached its end of life upstream";
     linux_5_19 = throw "linux 5.19 was removed because it has reached its end of life upstream";
     linux_6_0 = throw "linux 6.0 was removed because it has reached its end of life upstream";
     linux_6_2 = throw "linux 6.2 was removed because it has reached its end of life upstream";
     linux_6_3 = throw "linux 6.3 was removed because it has reached its end of life upstream";
+    linux_6_4 = throw "linux 6.4 was removed because it has reached its end of life upstream";
 
     linux_xanmod_tt = throw "linux_xanmod_tt was removed because upstream no longer offers this option";
 
@@ -407,11 +382,15 @@ in {
 
     lttng-modules = callPackage ../os-specific/linux/lttng-modules { };
 
+    mstflint_access = callPackage ../os-specific/linux/mstflint_access { };
+
     broadcom_sta = callPackage ../os-specific/linux/broadcom-sta { };
 
     tbs = callPackage ../os-specific/linux/tbs { };
 
     mbp2018-bridge-drv = callPackage ../os-specific/linux/mbp-modules/mbp2018-bridge-drv { };
+
+    nct6687d = callPackage ../os-specific/linux/nct6687d { };
 
     new-lg4ff = callPackage ../os-specific/linux/new-lg4ff { };
 
@@ -567,6 +546,10 @@ in {
 
     zenpower = callPackage ../os-specific/linux/zenpower { };
 
+    zfs_2_1 = callPackage ../os-specific/linux/zfs/2_1.nix {
+      configFile = "kernel";
+      inherit pkgs kernel;
+    };
     zfsStable = callPackage ../os-specific/linux/zfs/stable.nix {
       configFile = "kernel";
       inherit pkgs kernel;
@@ -583,6 +566,8 @@ in {
 
     hid-ite8291r3 = callPackage ../os-specific/linux/hid-ite8291r3 { };
 
+    hid-tmff2 = callPackage ../os-specific/linux/hid-tmff2 { };
+
   } // lib.optionalAttrs config.allowAliases {
     ati_drivers_x11 = throw "ati drivers are no longer supported by any kernel >=4.1"; # added 2021-05-18;
     hid-nintendo = throw "hid-nintendo was added in mainline kernel version 5.16"; # Added 2023-07-30
@@ -595,21 +580,22 @@ in {
 
   vanillaPackages = {
     # recurse to build modules for the kernels
-    linux_4_14 = recurseIntoAttrs (packagesFor kernels.linux_4_14);
     linux_4_19 = recurseIntoAttrs (packagesFor kernels.linux_4_19);
     linux_5_4 = recurseIntoAttrs (packagesFor kernels.linux_5_4);
     linux_5_10 = recurseIntoAttrs (packagesFor kernels.linux_5_10);
     linux_5_15 = recurseIntoAttrs (packagesFor kernels.linux_5_15);
     linux_6_1 = recurseIntoAttrs (packagesFor kernels.linux_6_1);
-    linux_6_4 = recurseIntoAttrs (packagesFor kernels.linux_6_4);
     linux_6_5 = recurseIntoAttrs (packagesFor kernels.linux_6_5);
+    linux_6_6 = recurseIntoAttrs (packagesFor kernels.linux_6_6);
   } // lib.optionalAttrs config.allowAliases {
     linux_4_9 = throw "linux 4.9 was removed because it will reach its end of life within 22.11"; # Added 2022-11-08
+    linux_4_14 = throw "linux 4.14 was removed because it will reach its end of life within 23.11"; # Added 2023-10-11
     linux_5_18 = throw "linux 5.18 was removed because it reached its end of life upstream"; # Added 2022-09-17
     linux_5_19 = throw "linux 5.19 was removed because it reached its end of life upstream"; # Added 2022-11-01
     linux_6_0 = throw "linux 6.0 was removed because it reached its end of life upstream"; # Added 2023-01-20
     linux_6_2 = throw "linux 6.2 was removed because it reached its end of life upstream"; # Added 2023-05-26
     linux_6_3 = throw "linux 6.3 was removed because it reached its end of life upstream"; # Added 2023-07-22
+    linux_6_4 = throw "linux 6.4 was removed because it reached its end of life upstream"; # Added 2023-10-02
   };
 
   rtPackages = {
@@ -631,26 +617,24 @@ in {
 
     # Intentionally lacks recurseIntoAttrs, as -rc kernels will quite likely break out-of-tree modules and cause failed Hydra builds.
     linux_testing = packagesFor kernels.linux_testing;
+    # FIXME: Remove after 23.11 is released
     linux_testing_bcachefs = recurseIntoAttrs (packagesFor kernels.linux_testing_bcachefs);
 
     linux_hardened = recurseIntoAttrs (packagesFor kernels.linux_hardened);
 
-    linux_4_14_hardened = recurseIntoAttrs (packagesFor kernels.linux_4_14_hardened);
     linux_4_19_hardened = recurseIntoAttrs (packagesFor kernels.linux_4_19_hardened);
     linux_5_4_hardened = recurseIntoAttrs (packagesFor kernels.linux_5_4_hardened);
     linux_5_10_hardened = recurseIntoAttrs (packagesFor kernels.linux_5_10_hardened);
     linux_5_15_hardened = recurseIntoAttrs (packagesFor kernels.linux_5_15_hardened);
     linux_6_1_hardened = recurseIntoAttrs (packagesFor kernels.linux_6_1_hardened);
-    linux_6_4_hardened = recurseIntoAttrs (packagesFor kernels.linux_6_4_hardened);
     linux_6_5_hardened = recurseIntoAttrs (packagesFor kernels.linux_6_5_hardened);
+    linux_6_6_hardened = recurseIntoAttrs (packagesFor kernels.linux_6_6_hardened);
 
     linux_zen = recurseIntoAttrs (packagesFor kernels.linux_zen);
     linux_lqx = recurseIntoAttrs (packagesFor kernels.linux_lqx);
     linux_xanmod = recurseIntoAttrs (packagesFor kernels.linux_xanmod);
     linux_xanmod_stable = recurseIntoAttrs (packagesFor kernels.linux_xanmod_stable);
     linux_xanmod_latest = recurseIntoAttrs (packagesFor kernels.linux_xanmod_latest);
-
-    hardkernel_4_14 = recurseIntoAttrs (packagesFor kernels.linux_hardkernel_4_14);
 
     linux_libre = recurseIntoAttrs (packagesFor kernels.linux_libre);
 
@@ -665,11 +649,10 @@ in {
   packageAliases = {
     linux_default = packages.linux_6_1;
     # Update this when adding the newest kernel major version!
-    linux_latest = packages.linux_6_5;
+    linux_latest = packages.linux_6_6;
     linux_mptcp = throw "'linux_mptcp' has been moved to https://github.com/teto/mptcp-flake";
     linux_rt_default = packages.linux_rt_5_4;
     linux_rt_latest = packages.linux_rt_6_1;
-    linux_hardkernel_latest = packages.hardkernel_4_14;
   };
 
   manualConfig = callPackage ../os-specific/linux/kernel/manual-config.nix {};

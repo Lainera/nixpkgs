@@ -10,23 +10,24 @@
 , openssl
 , direnv
 , Security
+, SystemConfiguration
 }:
 
 rustPlatform.buildRustPackage rec {
   pname = "rtx";
-  version = "2023.9.0";
+  version = "2023.12.18";
 
   src = fetchFromGitHub {
-    owner = "jdxcode";
+    owner = "jdx";
     repo = "rtx";
     rev = "v${version}";
-    hash = "sha256-TH2JC+Cjw+ed1O33QKGq+lonIKlu6pHuY1jtrZh/FMM=";
+    hash = "sha256-RjILdhH0Gg9VRvyVFukUrreYHnwtC+5MfXT+v4cT7/Y=";
   };
 
-  cargoHash = "sha256-zJVCzVgwU9lR3E61w+71eUd7Au9LmJcbHtgLvzTj7r4=";
+  cargoHash = "sha256-1/Te4JfPDE0gbMysnQbF2SH/oMq+b3fyVgIHaQx1m5E=";
 
   nativeBuildInputs = [ installShellFiles pkg-config ];
-  buildInputs = [ openssl  ] ++ lib.optionals stdenv.isDarwin [ Security ];
+  buildInputs = [ openssl  ] ++ lib.optionals stdenv.isDarwin [ Security SystemConfiguration ];
 
   postPatch = ''
     patchShebangs --build ./test/data/plugins/**/bin/* ./src/fake_asdf.rs ./src/cli/reshim.rs
@@ -61,9 +62,9 @@ rustPlatform.buildRustPackage rec {
   };
 
   meta = {
-    homepage = "https://github.com/jdxcode/rtx";
+    homepage = "https://github.com/jdx/rtx";
     description = "Polyglot runtime manager (asdf rust clone)";
-    changelog = "https://github.com/jdxcode/rtx/releases/tag/v${version}";
+    changelog = "https://github.com/jdx/rtx/releases/tag/v${version}";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ konradmalik ];
     mainProgram = "rtx";

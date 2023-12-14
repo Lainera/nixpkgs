@@ -20,13 +20,13 @@
 
 python3.pkgs.buildPythonApplication rec {
   pname = "setzer";
-  version = "59";
+  version = "63";
 
   src = fetchFromGitHub {
     owner = "cvfosammmm";
     repo = "Setzer";
     rev = "v${version}";
-    hash = "sha256-PmkEOOi30Fa8VXNmKPvp6UAaw74MID9uTaCzXs9vPpk=";
+    hash = "sha256-/DAd3Neypx/H9mPVC9VkvpdQhLRNIBoR8GXxuIdJF0Y=";
   };
 
   format = "other";
@@ -54,8 +54,10 @@ python3.pkgs.buildPythonApplication rec {
 
   propagatedBuildInputs = with python3.pkgs; [
     bibtexparser
+    numpy
     pdfminer-six
     pexpect
+    pillow
     pycairo
     pygobject3
     pyxdg

@@ -3,6 +3,10 @@
 The structure of this directory maps almost directly to top-level package attributes.
 This is the recommended way to add new top-level packages to Nixpkgs [when possible](#limitations).
 
+Packages found in the named-based structure do not need to be explicitly added to the
+`top-level/all-packages.nix` file unless they require overriding the default value
+of an implicit attribute (see below).
+
 ## Example
 
 The top-level package `pkgs.some-package` may be declared by setting up this file structure:
@@ -95,7 +99,9 @@ There's some limitations as to which packages can be defined using this structur
 - Only packages defined using `pkgs.callPackage`.
   This excludes packages defined using `pkgs.python3Packages.callPackage ...`.
 
-  Instead use the [category hierarchy](../README.md#category-hierarchy) for such attributes.
+  Instead:
+  - Either change the package definition to work with `pkgs.callPackage`.
+  - Or use the [category hierarchy](../README.md#category-hierarchy).
 
 - Only top-level packages.
   This excludes packages for other package sets like `pkgs.pythonPackages.*`.

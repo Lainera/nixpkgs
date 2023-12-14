@@ -11,7 +11,6 @@
 , namePrefix
 , update-python-libraries
 , setuptools
-, flitBuildHook
 , pypaBuildHook
 , pypaInstallHook
 , pythonCatchConflictsHook
@@ -90,7 +89,6 @@
 # Several package formats are supported.
 # "setuptools" : Install a common setuptools/distutils based package. This builds a wheel.
 # "wheel" : Install from a pre-compiled wheel.
-# "flit" : Install a flit package. This builds a wheel.
 # "pyproject": Install a package using a ``pyproject.toml`` file (PEP517). This builds a wheel.
 # "egg": Install a package from an egg.
 # "other" : Provide your own buildPhase and installPhase.
@@ -104,13 +102,14 @@
 
 , disabledTestPaths ? []
 
+# Allow passing in a custom stdenv to buildPython*
+, stdenv ? python.stdenv
+
 , ... } @ attrs:
 
 assert (pyproject != null) -> (format == null);
 
 let
-  inherit (python) stdenv;
-
   format' =
     if pyproject != null then
       if pyproject then
@@ -122,7 +121,7 @@ let
     else
       "setuptools";
 
-  withDistOutput = lib.elem format' ["pyproject" "setuptools" "flit" "wheel"];
+  withDistOutput = lib.elem format' ["pyproject" "setuptools" "wheel"];
 
   name_ = name;
 
@@ -196,7 +195,7 @@ let
   # Keep extra attributes from `attrs`, e.g., `patchPhase', etc.
   self = toPythonModule (stdenv.mkDerivation ((builtins.removeAttrs attrs [
     "disabled" "checkPhase" "checkInputs" "nativeCheckInputs" "doCheck" "doInstallCheck" "dontWrapPythonPrograms" "catchConflicts" "pyproject" "format"
-    "disabledTestPaths" "outputs"
+    "disabledTestPaths" "outputs" "stdenv"
   ]) // {
 
     name = namePrefix + name_;
@@ -222,12 +221,10 @@ let
       unzip
     ] ++ lib.optionals (format' == "setuptools") [
       setuptoolsBuildHook
-    ] ++ lib.optionals (format' == "flit") [
-      flitBuildHook
     ] ++ lib.optionals (format' == "pyproject") [(
       if isBootstrapPackage then
         pypaBuildHook.override {
-          inherit (python.pythonForBuild.pkgs.bootstrap) build;
+          inherit (python.pythonOnBuildForHost.pkgs.bootstrap) build;
           wheel = null;
         }
       else
@@ -239,7 +236,7 @@ let
     ] ++ lib.optionals (format' != "other") [(
       if isBootstrapInstallPackage then
         pypaInstallHook.override {
-          inherit (python.pythonForBuild.pkgs.bootstrap) installer;
+          inherit (python.pythonOnBuildForHost.pkgs.bootstrap) installer;
         }
       else
         pypaInstallHook
@@ -283,7 +280,7 @@ let
     '' + attrs.postFixup or "";
 
     # Python packages built through cross-compilation are always for the host platform.
-    disallowedReferences = lib.optionals (python.stdenv.hostPlatform != python.stdenv.buildPlatform) [ python.pythonForBuild ];
+    disallowedReferences = lib.optionals (python.stdenv.hostPlatform != python.stdenv.buildPlatform) [ python.pythonOnBuildForHost ];
 
     outputs = outputs ++ lib.optional withDistOutput "dist";
 

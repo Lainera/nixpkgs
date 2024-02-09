@@ -52,6 +52,7 @@ stdenv.mkDerivation (finalAttrs:
   );
   neovimLuaEnv = lua.withPackages requiredLuaPkgs;
   neovimLuaEnvOnBuild = lua.luaOnBuild.withPackages requiredLuaPkgs;
+  version = "32b49448b227588c2fbc93f89743104fd445e0a6 ";
   codegenLua =
     if lua.luaOnBuild.pkgs.isLuaJIT
       then
@@ -66,15 +67,15 @@ stdenv.mkDerivation (finalAttrs:
 
 in {
     pname = "neovim-unwrapped";
-    version = "0.9.5";
+    version = "32b49448b227588c2fbc93f89743104fd445e0a6";
 
     __structuredAttrs = true;
 
     src = fetchFromGitHub {
       owner = "neovim";
       repo = "neovim";
-      rev = "v${finalAttrs.version}";
-      hash = "sha256-CcaBqA0yFCffNPmXOJTo8c9v1jrEBiqAl8CG5Dj5YxE=";
+      rev = finalAttrs.version;
+      hash = "sha256-X1y0qjwgo1VJGAJhvMAbWJptzgs9hDpA8k7jRG27bQg=";
     };
 
     patches = [

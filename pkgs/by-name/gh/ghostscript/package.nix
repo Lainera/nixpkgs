@@ -155,6 +155,10 @@ stdenv.mkDerivation rec {
     done
   '';
 
+  preInstallCheck = if stdenv.hostPlatform.isDarwin then ''
+      DYLD_LIBRARY_PATH=$out/lib
+      export DYLD_LIBRARY_PATH
+    '' else null;
   # validate dynamic linkage
   doInstallCheck = true;
   installCheckPhase = ''
